@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:th="http://www.thymeleaf.org"
+	xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<head>
+<title>Orders</title>
+<style>
+table, th, td {
+	border: 1px solid black;
+}
+</style>
+</head>
+<body>
+	<form th:action="@{/logout}" method="post">
+		<input type="submit" value="Log Out" />
+	</form>
+	<h1 th:inline="text">Customer -
+		[[${#httpServletRequest.remoteUser}]]!</h1>
+	<hr />
+	<hr />
+	<table>
+		<tr>
+			<td><select id="products"></select></td>
+			<td><input id="quantity" type="number" value="1" min="1"
+				title="quantity" /></td>
+			<td><input id="addToCart" type="button" value="Add to cart" /></td>
+		</tr>
+	</table>
+	<hr />
+	<hr />
+	<h2>Shoping Cart</h2>
+	<hr />
+	<table id="cart">
+	<tr>
+	<td>Code</td>
+	<td>Name</td>
+	<td>Quantity</td>
+	</tr>
+	</table>
+</body>
+<script
+	src="http://ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script>
+<script type="text/javascript">
+
+		$.ajax({
+			url : 'orders/products',
+			success : function(response) {
+				$.each(response, function(i, val) {
+					$('#products').append($('<option />', {
+						value : val.id,
+						text : val.code + ' - ' + val.name,
+						title : val.description
+					}));
+				});
+			}
+		});
+		$.ajax({
+			url : 'orders/shopping-cart',
+			success : function(response) {
+				$.each(response.orders, function(i, val) {
+					var tr = $('<tr/>');
+					var tdCode=$('<td/>');
+					var tdName=$('<td/>');
+					var tdQuantity=$('<td/>');
+					tdCode.append(val.product.code);
+					tdName.append(val.product.name);
+					tdQuantity.append(val.quantity);
+					tr.append(tdCode);
+					tr.append(tdName);
+					tr.append(tdQuantity);
+					$('#cart').append(tr);
+				});
+				
+			}
+		});
+
+
+	$(function() {
+		$('#addToCart').on('click', function() {
+			$.ajax({
+				url : '/orders/add-new-order',
+				type : "POST",
+				data : {
+					productId : $('#products').find(":selected").val(),
+					quantity : $('#quantity').val()
+				},
+				dataType : 'json',
+				success : function(response) {
+						var tr = $('<tr/>');
+						var tdCode=$('<td/>');
+						var tdName=$('<td/>');
+						var tdQuantity=$('<td/>');
+						tdCode.append(response.product.code);
+						tdName.append(response.product.name);
+						tdQuantity.append(response.quantity);
+						tr.append(tdCode);
+						tr.append(tdName);
+						tr.append(tdQuantity);
+						$('#cart').append(tr);
+				}
+			});
+		});
+	});
+</script>
+</html>
